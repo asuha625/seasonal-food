@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旬食指南 - 台灣縣市在地節氣食材與美味食譜</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nature: {
+                            50: '#f4f7f4',
+                            100: '#e3ebe3',
+                            200: '#c7d8c7',
+                            500: '#52796f',
+                            600: '#354f52',
+                            700: '#2f3e46',
+                            800: '#222f35',
+                        },
+                        cream: {
+                            50: '#fcfbfa',
+                            100: '#f7f5f0',
+                            200: '#ede8de',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f7f5f0;
+            color: #2f3e46;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #ede8de;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c7d8c7;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 導覽列 -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-cream-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('explore')">
+                <div class="w-10 h-10 rounded-full bg-nature-500 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-seedling text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wider text-nature-700">旬食指南</h1>
+                    <p class="text-xs text-nature-500">Eat Seasonal & Local</p>
+                </div>
+            </div>
+            
+            <nav class="flex items-center space-x-2 sm:space-x-4">
+                <button onclick="switchTab('explore')" id="nav-explore" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-nature-500 text-white shadow-sm">
+                    <i class="fa-solid fa-compass mr-1.5"></i> 縣市當季探索
+                </button>
+                <button onclick="switchTab('matchmaker')" id="nav-matchmaker" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-nature-700 hover:bg-cream-200">
+                    <i class="fa-solid fa-utensils mr-1.5"></i> 智慧料理配對 <span id="badge-selected-count" class="ml-1 bg-nature-600 text-white text-xs px-1.5 py-0.5 rounded-full hidden">0</span>
+                </button>
+                <button onclick="switchTab('favorites')" id="nav-favorites" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-nature-700 hover:bg-cream-200 relative">
+                    <i class="fa-solid fa-bookmark mr-1.5"></i> 我的收藏 <span id="badge-fav-count" class="ml-1 bg-amber-600 text-white text-xs px-1.5 py-0.5 rounded-full hidden">0</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 主要內容區 -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- 區塊一：縣市當季探索 -->
+        <section id="tab-explore" class="space-y-8">
+            <!-- 篩選列 -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-cream-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                    <!-- 縣市選擇 -->
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <label class="text-sm font-semibold text-nature-700 whitespace-nowrap"><i class="fa-solid fa-location-dot text-nature-500 mr-1"></i> 選擇縣市：</label>
+                        <select id="city-select" class="bg-cream-100 border border-cream-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-nature-500 w-full sm:w-40 font-medium">
+                            <option value="taipei">台北市 / 新北市</option>
+                            <option value="taichung">台中市</option>
+                            <option value="tainan" selected>台南市</option>
+                            <option value="kaohsiung">高雄市</option>
+                            <option value="hualien">花蓮縣 / 宜蘭縣</option>
+                            <option value="pingtung">屏東縣</option>
+                        </select>
+                    </div>
+
+                    <!-- 月份選擇 -->
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <label class="text-sm font-semibold text-nature-700 whitespace-nowrap"><i class="fa-solid fa-calendar-days text-nature-500 mr-1"></i> 月份：</label>
+                        <select id="month-select" class="bg-cream-100 border border-cream-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-nature-500 w-full sm:w-36 font-medium">
+                            <option value="1">1月 (冬)</option>
+                            <option value="2">2月 (冬)</option>
+                            <option value="3">3月 (春)</option>
+                            <option value="4" selected>4月 (春)</option>
+                            <option value="5">5月 (春)</option>
+                            <option value="6">6月 (夏)</option>
+                            <option value="7">7月 (夏)</option>
+                            <option value="8">8月 (夏)</option>
+                            <option value="9">9月 (秋)</option>
+                            <option value="10">10月 (秋)</option>
+                            <option value="11">11月 (秋)</option>
+                            <option value="12">12月 (冬)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 狀態說明標示 -->
+                <div class="flex flex-wrap items-center gap-3 text-xs">
+                    <span class="flex items-center bg-emerald-50 text-emerald-800 border border-emerald-500 px-2.5 py-1 rounded-full font-bold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> 🔥 最當季盛產 (優先排列)
+                    </span>
+                    <span class="flex items-center bg-cream-100 text-nature-700 border border-cream-200 px-2.5 py-1 rounded-full">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 mr-1.5"></span> 🛒 全年常供
+                    </span>
+                    <span class="flex items-center bg-gray-100 text-gray-400 border border-gray-200 px-2.5 py-1 rounded-full">
+                        <span class="w-2 h-2 rounded-full bg-gray-300 mr-1.5"></span> 🚫 非當季 (無法勾選)
+                    </span>
+                </div>
+            </div>
+
+            <!-- 食材三分列區塊 -->
+            <div class="space-y-10">
+                <!-- 列 1：蔬菜類 -->
+                <div>
+                    <h2 class="text-xl font-bold text-nature-800 mb-4 flex items-center">
+                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block mr-2"></span> 蔬菜選擇
+                    </h2>
+                    <div id="vegetables-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                </div>
+
+                <!-- 列 2：水果類 -->
+                <div>
+                    <h2 class="text-xl font-bold text-nature-800 mb-4 flex items-center">
+                        <span class="w-3.5 h-3.5 rounded-full bg-amber-500 inline-block mr-2"></span> 水果選擇
+                    </h2>
+                    <div id="fruits-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                </div>
+
+                <!-- 列 3：肉類與蛋白質 -->
+                <div>
+                    <h2 class="text-xl font-bold text-nature-800 mb-4 flex items-center">
+                        <span class="w-3.5 h-3.5 rounded-full bg-rose-500 inline-block mr-2"></span> 肉類與蛋白質
+                    </h2>
+                    <div id="proteins-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 區塊二：智慧料理配對 -->
+        <section id="tab-matchmaker" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-cream-200">
+                <h2 class="text-xl font-bold text-nature-800 mb-2"><i class="fa-solid fa-basket-shopping text-nature-500 mr-2"></i> 已選烹調食材籃</h2>
+                <p class="text-sm text-nature-600 mb-4">系統會尋找包含您「所選全部食材」的完整美味菜單！</p>
+                
+                <div id="selected-ingredients-tags" class="flex flex-wrap gap-2 min-h-[50px] p-4 bg-cream-50 rounded-xl border border-cream-200 items-center">
+                    <span class="text-sm text-gray-400 italic" id="no-ingredient-selected-hint">尚未選取食材，請至「縣市當季探索」勾選食材。</span>
+                </div>
+                <div class="mt-4 flex justify-between items-center">
+                    <button onclick="clearSelectedIngredients()" class="text-xs text-red-600 hover:text-red-800 font-medium px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 transition-colors">
+                        <i class="fa-solid fa-trash-can mr-1"></i> 清空食材籃
+                    </button>
+                    <button onclick="runRecipeMatch()" class="bg-nature-500 hover:bg-nature-600 text-white px-5 py-2 rounded-xl text-sm font-semibold shadow-sm transition-all flex items-center">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> 開始配對料理
+                    </button>
+                </div>
+            </div>
+
+            <!-- 推薦料理結果區 -->
+            <div>
+                <h3 class="text-lg font-bold text-nature-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-utensils text-nature-500 mr-2"></i> 推薦食譜與製作步驟
+                </h3>
+                <div id="recipe-results-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="col-span-full bg-white p-10 rounded-2xl text-center border border-cream-200 text-gray-400">
+                        <i class="fa-solid fa-plate-wheat text-4xl mb-3 text-cream-200"></i>
+                        <p>請先勾選食材並點擊「開始配對料理」！</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 區塊三：我的收藏 -->
+        <section id="tab-favorites" class="hidden space-y-8">
+            <div>
+                <h2 class="text-xl font-bold text-nature-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-carrot text-amber-500 mr-2"></i> 收藏的食材
+                </h2>
+                <div id="fav-ingredients-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+            </div>
+
+            <div class="pt-4">
+                <h2 class="text-xl font-bold text-nature-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-book-open text-nature-500 mr-2"></i> 收藏的料理食譜
+                </h2>
+                <div id="fav-recipes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 食材詳細資訊 Modal -->
+    <div id="ingredient-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl border border-cream-200">
+            <div class="relative h-56 bg-cream-100 flex items-center justify-center overflow-hidden">
+                <img id="modal-image" src="" alt="" class="w-full h-full object-cover">
+                <button onclick="closeModal()" class="absolute top-4 right-4 bg-black/40 hover:bg-black/60 text-white w-9 h-9 rounded-full flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span id="modal-category" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-nature-50 text-nature-600 border border-nature-200">蔬菜</span>
+                        <h2 id="modal-title" class="text-2xl font-bold text-nature-800 mt-1">番茄</h2>
+                    </div>
+                    <button id="modal-fav-btn" onclick="toggleFavoriteIngredientFromModal()" class="w-10 h-10 rounded-full border border-cream-200 flex items-center justify-center text-gray-400 hover:text-amber-500 transition-colors">
+                        <i class="fa-solid fa-bookmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="bg-cream-50 p-4 rounded-xl border border-cream-200">
+                    <h4 class="text-xs font-bold text-nature-700 uppercase tracking-wider mb-1"><i class="fa-solid fa-calendar-check text-nature-500 mr-1"></i> 盛產月份與主要產地</h4>
+                    <p id="modal-season" class="text-sm text-nature-800">3月 - 7月</p>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-nature-700 mb-2 flex items-center"><i class="fa-solid fa-magnifying-glass text-nature-500 mr-2"></i> 挑選技巧</h4>
+                    <p id="modal-selection" class="text-sm text-gray-600 leading-relaxed bg-white p-3.5 rounded-xl border border-cream-200">...</p>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-nature-700 mb-2 flex items-center"><i class="fa-solid fa-box-archive text-nature-500 mr-2"></i> 保存方式</h4>
+                    <p id="modal-storage" class="text-sm text-gray-600 leading-relaxed bg-white p-3.5 rounded-xl border border-cream-200">...</p>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-nature-700 mb-2 flex items-center"><i class="fa-solid fa-kitchen-set text-nature-500 mr-2"></i> 建議料理（點擊可直接載入配對）：</h4>
+                    <div id="modal-recipes" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="pt-2" id="modal-select-area">
+                    <button id="modal-select-checkbox-btn" onclick="toggleSelectIngredientFromModal()" class="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center bg-nature-500 hover:bg-nature-600 text-white shadow-sm">
+                        <i class="fa-solid fa-plus mr-1.5"></i> 加入配對食材籃
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 趣味彈窗：黑暗料理警告 -->
+    <div id="weird-combo-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center shadow-2xl border-2 border-amber-400">
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-3xl mb-4">
+                🤪
+            </div>
+            <h3 class="text-xl font-bold text-nature-800 mb-2">等一下！這組合真的好吃嗎？</h3>
+            <p id="weird-combo-desc" class="text-sm text-gray-600 mb-6 bg-amber-50 p-3 rounded-xl border border-amber-200 text-left">
+                您同時選擇了奇怪的搭配組合！
+            </p>
+            <div class="flex space-x-3">
+                <button onclick="closeWeirdModal()" class="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-sm font-semibold transition-colors">
+                    返回修改食材
+                </button>
+                <button onclick="closeWeirdModal(true)" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold transition-colors">
+                    勇者試吃！繼續配對
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頁尾 -->
+    <footer class="bg-white border-t border-cream-200 py-6 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-nature-500">
+            <p>&copy; 2026 旬食指南 Seasonal Food Guide. 支持在地農特產，吃出四季健康美味。</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript 邏輯 -->
+    <script>
+        // 使用高效能、保證穩定顯示的真實相片圖庫 (Unsplash)
+        const ingredientsData = [
+            // --- 蔬菜類 ---
+            { id: 'bamboo', name: '綠竹筍', type: 'veg', isAlwaysAvailable: false, peakMonths: [4, 5, 6, 7], cities: ['taipei', 'taichung', 'tainan'], image: 'images/08.jpg', selection: '形狀彎曲如牛角、底座寬大、無青綠目。', storage: '帶殼濕報紙包覆，放入塑膠袋冷藏。', recipeIds: ['recipe-1'] },
+            { id: 'scallion', name: '三星蔥', type: 'veg', isAlwaysAvailable: true, peakMonths: [1, 2, 3, 4, 11, 12], cities: ['hualien'], image: 'images/06.jpg', selection: '蔥白長直（>15cm）、緊實挺拔。', storage: '廚房紙巾包覆冷藏。', recipeIds: ['recipe-13'] },
+            { id: 'bitter_melon', name: '白苦瓜', type: 'veg', isAlwaysAvailable: false, peakMonths: [5, 6, 7, 8, 9], cities: ['tainan', 'kaohsiung', 'pingtung'], image: 'images/09.jpg', selection: '果瘤顆粒大且飽滿、色澤白亮。', storage: '挖除內籽膜後，紙巾包覆冷藏。', recipeIds: ['recipe-6'] },
+            { id: 'taro', name: '大甲芋頭', type: 'veg', isAlwaysAvailable: false, peakMonths: [8, 9, 10, 11, 12], cities: ['taichung', 'kaohsiung'], image: 'images/10.jpg', selection: '拿起來沉手、切面粉紫色紋理清晰。', storage: '置於常溫通風處保存。', recipeIds: ['recipe-12'] },
+            { id: 'daylily', name: '赤科山金針花', type: 'veg', isAlwaysAvailable: false, peakMonths: [8, 9, 10], cities: ['hualien'], image: 'images/11.jpg', selection: '花蕾飽滿黃亮、無受潮異味。', storage: '乾燥金針密封常溫，鮮金針冷藏。', recipeIds: ['recipe-15'] },
+            { id: 'silk_gourd', name: '美濃絲瓜', type: 'veg', isAlwaysAvailable: false, peakMonths: [5, 6, 7, 8, 9], cities: ['kaohsiung', 'pingtung'], image: 'images/12.jpg', selection: '瓜體重、頭尾粗細均勻、果皮鮮綠。', storage: '保鮮膜包裹冷藏。', recipeIds: ['recipe-16'] },
+            { id: 'lotus_root', name: '白河蓮藕', type: 'veg', isAlwaysAvailable: false, peakMonths: [7, 8, 9, 10], cities: ['tainan'], image: 'images/lotusroot.jpg', selection: '節粗短、外表自然帶泥且無傷痕。', storage: '報紙包覆放陰涼處或冷藏。', recipeIds: ['recipe-14'] },
+            { id: 'cabbage', name: '高麗菜', type: 'veg', isAlwaysAvailable: true, peakMonths: [1, 2, 3, 11, 12], cities: ['taipei', 'taichung', 'tainan', 'kaohsiung', 'hualien', 'pingtung'], image: 'images/13.jpg', selection: '葉片完整光澤、拿起來沉重結實。', storage: '核心沾濕濕紙巾，密封袋冷藏。', recipeIds: ['recipe-2'] },
+            { id: 'tomato', name: '牛番茄', type: 'veg', isAlwaysAvailable: true, peakMonths: [3, 4, 5, 11, 12], cities: ['taichung', 'tainan', 'hualien'], image: 'images/14.jpg', selection: '色澤鮮紅均勻、蒂頭鮮綠。', storage: '室溫催熟後，袋裝冷藏。', recipeIds: ['recipe-3'] },
+            { id: 'cucumber', name: '小黃瓜', type: 'veg', isAlwaysAvailable: true, peakMonths: [5, 6, 7, 8], cities: ['taipei', 'taichung', 'tainan', 'kaohsiung'], image: 'images/15.jpg', selection: '瓜體挺直、表面刺狀突起明顯。', storage: '紙巾包裹直立冷藏。', recipeIds: ['recipe-5'] },
+            { id: 'pumpkin', name: '南瓜', type: 'veg', isAlwaysAvailable: true, peakMonths: [8, 9, 10, 11], cities: ['hualien', 'tainan', 'pingtung'], image: 'images/pumpkin.jpg', selection: '表皮堅硬帶白霜、蒂頭木質化。', storage: '整顆常溫陰涼處可保存數月。', recipeIds: ['recipe-9'] },
+            { id: 'bell_pepper', name: '甜椒', type: 'veg', isAlwaysAvailable: true, peakMonths: [1, 2, 3, 4, 10, 11, 12], cities: ['taichung', 'tainan', 'pingtung'], image: 'images/03.jpg', selection: '果肉厚實有彈性、外皮光滑鮮豔。', storage: '保持乾燥冷藏。', recipeIds: ['recipe-7', 'recipe-19'] },
+
+            // --- 水果類 ---
+            { id: 'pomelo', name: '麻豆文旦', type: 'fruit', isAlwaysAvailable: false, peakMonths: [8, 9, 10], cities: ['tainan', 'hualien'], image: 'images/16.jpg', selection: '底部寬平、拿起來沉手。', storage: '常溫通風進行辭水。', recipeIds: [] },
+            { id: 'guava', name: '燕巢芭樂', type: 'fruit', isAlwaysAvailable: true, peakMonths: [9, 10, 11, 12, 1, 2], cities: ['kaohsiung'], image: 'images/17.jpg', selection: '表皮微凹凸不平、霧感淡綠。', storage: '袋裝冷藏保鮮。', recipeIds: [] },
+            { id: 'watermelon', name: '花蓮大西瓜', type: 'fruit', isAlwaysAvailable: false, peakMonths: [5, 6, 7, 8], cities: ['hualien', 'tainan'], image: 'images/18.jpg', selection: '紋路清晰、拍打聲音沉木扎實。', storage: '切開後緊密包覆保鮮膜冷藏。', recipeIds: [] },
+            { id: 'passion_fruit', name: '埔里百香果', type: 'fruit', isAlwaysAvailable: false, peakMonths: [7, 8, 9, 10], cities: ['taichung'], image: 'images/19.jpg', selection: '外皮深紫紅、搖晃有沉重液體感。', storage: '放置常溫至外皮微皺更甜。', recipeIds: ['recipe-5'] },
+            { id: 'pineapple', name: '關廟金鑽鳳梨', type: 'fruit', isAlwaysAvailable: false, peakMonths: [4, 5, 6, 7], cities: ['tainan', 'kaohsiung', 'pingtung'], image: 'images/20.jpg', selection: '果皮黃綠相間、香氣濃郁。', storage: '室溫陰涼處或切塊冷藏。', recipeIds: ['recipe-4', 'recipe-17'] },
+            { id: 'mango', name: '玉井愛文芒果', type: 'fruit', isAlwaysAvailable: false, peakMonths: [5, 6, 7], cities: ['tainan', 'pingtung'], image: 'images/22.jpg', selection: '果皮紅潤帶果粉、富含濃郁甜香。', storage: '微軟後報紙包覆冷藏。', recipeIds: ['recipe-8'] },
+            { id: 'apple', name: '梨山蘋果', type: 'fruit', isAlwaysAvailable: true, peakMonths: [9, 10, 11, 12], cities: ['taichung'], image: 'images/21.jpg', selection: '果皮結實、臍部深且廣。', storage: '袋裝冷藏防止催熟其他蔬果。', recipeIds: ['recipe-11'] }
+        ];
+
+        // --- 肉類與蛋白質 ---
+        const proteinIngredientsData = [
+            { id: 'mahi_mahi', name: '花蓮鬼頭刀', type: 'protein', isAlwaysAvailable: false, peakMonths: [4, 5, 6, 10, 11], cities: ['hualien', 'pingtung'], image: 'images/23.jpg', selection: '肉質緊實彈牙、呈粉紅色。', storage: '急速冷凍保存。', recipeIds: ['recipe-18'] },
+            { id: 'shrimp', name: '屏東白蝦', type: 'protein', isAlwaysAvailable: true, peakMonths: [4, 5, 6, 7, 8, 9, 10], cities: ['pingtung', 'tainan'], image: 'images/24.jpg', selection: '蝦殼硬朗明亮、蝦頭緊連身體。', storage: '保鮮盒冷凍。', recipeIds: ['recipe-8', 'recipe-17', 'recipe-19'] },
+            { id: 'pork', name: '台灣優質豬肉', type: 'protein', isAlwaysAvailable: true, peakMonths: [1,2,3,4,5,6,7,8,9,10,11,12], cities: ['taipei','taichung','tainan','kaohsiung','hualien','pingtung'], image: 'images/25.jpg', selection: '肉質鮮紅帶彈性、脂肪潔白。', storage: '密封冷凍或3天內冷藏完畢。', recipeIds: ['recipe-1', 'recipe-2', 'recipe-11', 'recipe-16'] },
+            { id: 'beef', name: '台南溫體牛肉', type: 'protein', isAlwaysAvailable: true, peakMonths: [1,2,3,4,5,6,7,8,9,10,11,12], cities: ['tainan', 'taipei', 'taichung'], image: 'images/26.jpg', selection: '色澤鮮紅不暗沉、無異味水分。', storage: '儘快烹調或冷凍保存。', recipeIds: ['recipe-7', 'recipe-10', 'recipe-13'] },
+            { id: 'chicken', name: '鹿野土雞肉', type: 'protein', isAlwaysAvailable: true, peakMonths: [1,2,3,4,5,6,7,8,9,10,11,12], cities: ['hualien', 'taichung', 'tainan'], image: 'images/27.jpg', selection: '表皮光滑緊致、無黏液。', storage: '密封冷藏或冷凍。', recipeIds: ['recipe-9'] },
+            { id: 'egg', name: '優質鮮雞蛋', type: 'protein', isAlwaysAvailable: true, peakMonths: [1,2,3,4,5,6,7,8,9,10,11,12], cities: ['taipei','taichung','tainan','kaohsiung','hualien','pingtung'], image: 'images/28.jpg', selection: '蛋殼粗糙無裂痕、拿起來有份量。', storage: '鈍端朝上冷藏。', recipeIds: ['recipe-3', 'recipe-6'] }
+        ];
+
+        // 完整食譜庫
+        const recipesData = [
+            { id: 'recipe-19', title: '彩椒爆炒鮮蝦', ingredients: ['bell_pepper', 'shrimp'], time: '15分鐘', difficulty: '簡單', image: 'images/04.jpg', description: '鮮甜Q彈的白蝦搭配色彩鮮豔的多汁彩椒，大火快炒鎖住營養！', steps: ['鮮蝦開背去蝦線，彩椒切塊。', '熱鍋爆香蒜末，放入鮮蝦炒至變色。', '加入彩椒大火翻炒1分鐘，加鹽與少許米酒即可起鍋。'] },
+            { id: 'recipe-1', title: '清爽竹筍排骨湯', ingredients: ['bamboo', 'pork'], time: '45分鐘', difficulty: '簡單', image: 'images/29.jpg', description: '結合當季鮮甜綠竹筍與排骨慢火熬煮，湯頭清甜不膩。', steps: ['排骨汆燙去血水備用。', '綠竹筍去殼切塊，滾水煮5分鐘去苦味。', '加入水、排骨與竹筍小火慢燉35分鐘，加鹽調味即可。'] },
+            { id: 'recipe-2', title: '蒜香高麗菜炒豬肉', ingredients: ['cabbage', 'pork'], time: '12分鐘', difficulty: '超簡單', image: 'images/30.jpg', description: '利用高麗菜本身的甘甜搭配豬肉片大火快炒，家常下飯。', steps: ['高麗菜洗淨手撕切塊，豬肉切片備用。', '熱鍋爆香蒜頭與豬肉片至變色。', '放入高麗菜大火快炒，加入少許鹽與米酒即可起鍋。'] },
+            { id: 'recipe-3', title: '經典家常番茄炒蛋', ingredients: ['tomato', 'egg'], time: '15分鐘', difficulty: '簡單', image: 'images/31.jpg', description: '酸甜多汁的牛番茄與軟嫩滑蛋完美結合。', steps: ['番茄切塊，雞蛋打散先下鍋炒至7分熟盛出。', '原鍋炒香番茄至出汁軟化。', '倒回滑蛋加少許糖與鹽拌勻即可。'] },
+            { id: 'recipe-4', title: '古早味鳳梨炒木耳', ingredients: ['pineapple'], time: '15分鐘', difficulty: '簡單', image: 'images/32.jpg', description: '酸甜開胃的鳳梨搭配爽脆黑木耳，春夏絕配。', steps: ['鳳梨切片，黑木耳切塊，薑切絲。', '爆香薑絲後加入黑木耳與鳳梨拌炒。', '加少許醬油與糖收汁即可。'] },
+            { id: 'recipe-5', title: '百香果涼拌小黃瓜', ingredients: ['cucumber', 'passion_fruit'], time: '10分鐘', difficulty: '簡單', image: 'images/33.jpg', description: '果香濃郁的百香果醬汁醃製爽脆小黃瓜，酸甜消暑！', steps: ['小黃瓜切薄片加鹽醃10分鐘去澀水。', '挖出新鮮百香果肉，加入少許糖拌勻。', '將小黃瓜與百香果醬混合冷藏醃製即可。'] },
+            { id: 'recipe-6', title: '鹹蛋苦瓜', ingredients: ['bitter_melon', 'egg'], time: '20分鐘', difficulty: '中等', image: 'images/34.jpg', description: '鹹香濃郁的鹹蛋黃完美包裹著清脆微苦的白苦瓜。', steps: ['白苦瓜去籽切片汆燙撈出。', '鹹蛋黃搗碎下鍋炒至起泡，放入苦瓜拌炒。', '加入少許白胡椒粉與蛋白碎翻炒均勻。'] },
+            { id: 'recipe-7', title: '蒜香牛肉炒彩椒', ingredients: ['bell_pepper', 'beef'], time: '15分鐘', difficulty: '簡單', image: 'images/05.jpg', description: '彩椒鮮豔多汁富含維生素，搭配牛肉片快炒香氣四溢。', steps: ['牛肉片用少許醬油抓醃。', '彩椒切塊，蒜頭切片。', '大火快炒牛肉至5分熟盛出，爆香彩椒後倒回牛肉翻炒。'] },
+            { id: 'recipe-8', title: '泰式芒果鮮蝦沙拉', ingredients: ['mango', 'shrimp'], time: '15分鐘', difficulty: '簡單', image: 'images/35.jpg', description: '鮮甜芒果與Q彈川燙鮮蝦，淋上泰式酸辣醬汁超開胃。', steps: ['鮮蝦川燙熟後剝殼冰鎮。', '芒果切丁，小黃瓜切絲。', '加入少許檸檬汁、魚露與糖混合均勻即可享用。'] },
+            { id: 'recipe-9', title: '溫潤南瓜燉雞肉', ingredients: ['pumpkin', 'chicken'], time: '30分鐘', difficulty: '簡單', image: 'images/02.jpg', description: '南瓜燉煮至軟綿融入湯汁，讓雞肉吸滿香甜精華。', steps: ['雞肉切塊煎至表面金黃。', '加入南瓜塊與水滾煮20分鐘。', '南瓜軟爛後加少許鹽巴調味即可。'] },
+            { id: 'recipe-10', title: '台南風味牛肉湯', ingredients: ['beef'], time: '20分鐘', difficulty: '中等', image: 'images/36.jpg', description: '鮮美甘甜的高湯直接沖入新鮮溫體牛肉片，溫潤養生。', steps: ['高湯加入薑絲煮滾。', '碗內放入生牛肉薄片。', '將滾燙高湯直接沖入碗中至牛肉呈現粉紅色即可。'] },
+            { id: 'recipe-11', title: '香濃蘋果燉豬肉', ingredients: ['apple', 'pork'], time: '40分鐘', difficulty: '簡單', image: 'images/37.jpg', description: '利用蘋果天然果酸軟化豬肉質，風味獨特果香四溢。', steps: ['豬肉切塊煎香，蘋果切塊。', '加入少許醬油、米酒與水燉煮30分鐘。', '大火收汁至濃稠即可。'] },
+            { id: 'recipe-12', title: '大甲芋頭西米露', ingredients: ['taro'], time: '25分鐘', difficulty: '簡單', image: 'images/.jpg38', description: '芋香濃郁綿密，甜而不膩的經典甜品。', steps: ['芋頭蒸軟後搗成泥，留少許芋頭丁。', '西米露滾水煮10分鐘至透明撈出冰鎮。', '椰奶與椰糖煮融，加入芋泥與西米露即可。'] },
+            { id: 'recipe-13', title: '三星蔥爆牛肉', ingredients: ['scallion', 'beef'], time: '12分鐘', difficulty: '簡單', image: 'images/07.jpg', description: '蔥白鮮甜多汁，大火爆炒讓牛肉香氣提升至極致。', steps: ['三星蔥切長段，牛肉切片抓醃。', '熱鍋快速將牛肉炒至5分熟撈出。', '爆香蔥段至出香味，倒回牛肉加醬油大火快炒。'] },
+            { id: 'recipe-14', title: '蒜香蓮藕炒肉片', ingredients: ['lotus_root', 'pork'], time: '15分鐘', difficulty: '簡單', image: 'images/01.webp', description: '蓮藕爽脆多汁，與豬肉片快炒鹹香宜人。', steps: ['蓮藕去皮切薄片，泡水防止變黑。', '熱鍋爆香蒜末與豬肉片。', '放入蓮藕片大火翻炒，加少許水與鹽調味。'] },
+            { id: 'recipe-15', title: '金針排骨湯', ingredients: ['daylily', 'pork'], time: '35分鐘', difficulty: '簡單', image: 'images/39.jpg', description: '金針花的自然酸甜微香融於高湯中，甘甜養生。', steps: ['排骨川燙去血水。', '乾金針花泡水洗淨打結。', '排骨與薑片煮20分鐘後加入金針花再煮10分鐘即可。'] },
+            { id: 'recipe-16', title: '麻油松坂豬炒絲瓜', ingredients: ['silk_gourd', 'pork'], time: '15分鐘', difficulty: '簡單', image: 'images/40.jpg', description: '絲瓜清甜多汁，與麻油及松坂豬肉香氣相輔相成。', steps: ['絲瓜去皮切塊，松坂豬切片。', '黑麻油爆香薑絲，放入松坂豬煎至表面金黃。', '加入絲瓜與少許水蓋鍋悶煮3分鐘即可。'] },
+            { id: 'recipe-17', title: '古早味鳳梨蝦球', ingredients: ['pineapple', 'shrimp'], time: '20分鐘', difficulty: '中等', image: 'images/41.jpg', description: '金黃酥脆的蝦球裹上沙拉醬，搭配當季關廟鳳梨。', steps: ['鮮蝦開背去蝦線，裹上太白粉炸至金黃酥脆。', '鳳梨切塊鋪於盤底。', '炸好的蝦球擺上，擠上美乃滋淋醬即可。'] },
+            { id: 'recipe-18', title: '泰式香煎鬼頭刀魚排', ingredients: ['mahi_mahi'], time: '15分鐘', difficulty: '簡單', image: 'images/42.jpg', description: '花蓮產鬼頭刀肉質扎實，煎至金黃後淋上泰式醬汁。', steps: ['鬼頭刀魚排洗淨擦乾，抹少許鹽與黑胡椒。', '熱鍋將魚排兩面煎至金黃熟透。', '淋上檸檬汁、魚露與蒜末調成的醬汁。'] }
+        ];
+
+        // 黑暗料理警示定義 (包含芭樂+南瓜等特殊組合)
+        const weirdCombinations = [
+            { ingredients: ['guava', 'pumpkin'], reason: '芭樂口感清脆爽利，與南瓜綿密溫甜混煮可能會造成口感衝突！' },
+            { ingredients: ['pumpkin', 'pomelo'], reason: '南瓜與柚子同時食用口感較滑黏且酸甜味極度不協調！' },
+            { ingredients: ['bitter_melon', 'strawberry'], reason: '苦瓜的極致微苦與草莓的果酸甜融合在一起，可能會讓味蕾陷入混亂！' },
+            { ingredients: ['watermelon', 'spinach'], reason: '西瓜與菠菜皆屬涼性且水分高，大量混吃可能會讓肚子不太舒服喔！' }
+        ];
+
+        // 狀態管理
+        let selectedIngredients = []; 
+        let favoriteIngredients = JSON.parse(localStorage.getItem('fav_ingredients') || '[]');
+        let favoriteRecipes = JSON.parse(localStorage.getItem('fav_recipes') || '[]');
+        let currentModalIngredient = null;
+        let bypassWeirdWarning = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('city-select').addEventListener('change', renderExplore);
+            document.getElementById('month-select').addEventListener('change', renderExplore);
+
+            const currentMonth = new Date().getMonth() + 1;
+            document.getElementById('month-select').value = currentMonth;
+
+            renderExplore();
+            updateBadges();
+        });
+
+        function switchTab(tabId) {
+            ['explore', 'matchmaker', 'favorites'].forEach(id => {
+                document.getElementById(`tab-${id}`).classList.add('hidden');
+                document.getElementById(`nav-${id}`).className = "px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-nature-700 hover:bg-cream-200";
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            activeBtn.className = "px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-nature-500 text-white shadow-sm";
+
+            if (tabId === 'matchmaker') {
+                renderMatchmakerSelected();
+            } else if (tabId === 'favorites') {
+                renderFavorites();
+            }
+        }
+
+        function getIngredientStatus(item, selectedCity, selectedMonth) {
+            const hasCity = item.cities.includes(selectedCity);
+            const isPeak = item.peakMonths.includes(selectedMonth);
+
+            if (hasCity && isPeak) return 'peak';
+            if (item.isAlwaysAvailable) return 'always';
+            return 'off_season';
+        }
+
+        function sortIngredientsByStatus(items, city, month) {
+            const statusOrder = { 'peak': 1, 'always': 2, 'off_season': 3 };
+            return [...items].sort((a, b) => {
+                const statusA = getIngredientStatus(a, city, month);
+                const statusB = getIngredientStatus(b, city, month);
+                return statusOrder[statusA] - statusOrder[statusB];
+            });
+        }
+
+        function renderExplore() {
+            const city = document.getElementById('city-select').value;
+            const month = parseInt(document.getElementById('month-select').value);
+
+            const vegList = sortIngredientsByStatus(ingredientsData.filter(i => i.type === 'veg'), city, month);
+            const fruitList = sortIngredientsByStatus(ingredientsData.filter(i => i.type === 'fruit'), city, month);
+            const proteinList = sortIngredientsByStatus(proteinIngredientsData, city, month);
+
+            renderIngredientGrid('vegetables-grid', vegList, city, month);
+            renderIngredientGrid('fruits-grid', fruitList, city, month);
+            renderIngredientGrid('proteins-grid', proteinList, city, month);
+        }
+
+        function renderIngredientGrid(containerId, items, city, month) {
+            const container = document.getElementById(containerId);
+
+            container.innerHTML = items.map(item => {
+                const status = getIngredientStatus(item, city, month);
+                const isSelected = selectedIngredients.includes(item.id);
+                const isFav = favoriteIngredients.includes(item.id);
+
+                let cardStyle = "";
+                let badgeHTML = "";
+                let disabledAttr = "";
+
+                if (status === 'peak') {
+                    cardStyle = "bg-white border-2 border-emerald-500 shadow-md ring-2 ring-emerald-100";
+                    badgeHTML = `<span class="text-[10px] bg-emerald-500 text-white font-bold px-2.5 py-0.5 rounded-full shadow-xs"><i class="fa-solid fa-fire mr-1"></i>最當季盛產</span>`;
+                } else if (status === 'always') {
+                    cardStyle = "bg-white border border-cream-200 shadow-sm";
+                    badgeHTML = `<span class="text-[10px] bg-amber-100 text-amber-800 font-medium px-2 py-0.5 rounded-full">🛒 全年常供</span>`;
+                } else {
+                    cardStyle = "bg-gray-50 border border-gray-200 opacity-60";
+                    badgeHTML = `<span class="text-[10px] bg-gray-200 text-gray-500 font-medium px-2 py-0.5 rounded-full">🚫 非產季</span>`;
+                    disabledAttr = "disabled";
+                }
+
+                return `
+                    <div class="rounded-2xl overflow-hidden transition-all flex flex-col justify-between relative group ${cardStyle}">
+                        <button onclick="event.stopPropagation(); toggleFavoriteIngredient('${item.id}')" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md hover:bg-white flex items-center justify-center text-xs ${isFav ? 'text-amber-500' : 'text-gray-400'} transition-colors z-10 shadow-sm">
+                            <i class="fa-solid fa-bookmark"></i>
+                        </button>
+
+                        <div onclick="openModal('${item.id}', '${status}')" class="cursor-pointer">
+                            <div class="h-36 w-full overflow-hidden bg-cream-100 relative">
+                                <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                <div class="absolute bottom-2 left-2">
+                                    ${badgeHTML}
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-bold text-nature-800 text-base mb-1">${item.name}</h3>
+                                <p class="text-xs text-gray-500 line-clamp-2 bg-cream-50 p-2 rounded-xl"><strong class="text-nature-700">挑選：</strong>${item.selection}</p>
+                            </div>
+                        </div>
+
+                        <div class="px-3 pb-3 pt-2 border-t border-cream-200/60 flex items-center justify-between">
+                            <button onclick="openModal('${item.id}', '${status}')" class="text-xs font-semibold text-nature-600 hover:text-nature-800">
+                                詳細撇步
+                            </button>
+                            <label class="flex items-center space-x-1.5 cursor-pointer text-xs font-medium text-nature-700 ${status === 'off_season' ? 'cursor-not-allowed opacity-50' : ''}">
+                                <input type="checkbox" ${isSelected ? 'checked' : ''} ${disabledAttr} onchange="toggleSelectIngredient('${item.id}')" class="rounded text-nature-500 focus:ring-nature-500">
+                                <span>${status === 'off_season' ? '無法選取' : '加入配對'}</span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openModal(id, status = 'always') {
+            const item = ingredientsData.find(i => i.id === id) || proteinIngredientsData.find(i => i.id === id);
+            if (!item) return;
+            currentModalIngredient = { ...item, status };
+
+            document.getElementById('modal-image').src = item.image;
+            document.getElementById('modal-category').innerText = item.type === 'veg' ? '蔬菜' : (item.type === 'fruit' ? '水果' : '肉類/蛋白質');
+            document.getElementById('modal-title').innerText = item.name;
+            document.getElementById('modal-season').innerText = item.peakMonths ? item.peakMonths.map(m => `${m}月`).join('、') : '全年提供';
+            document.getElementById('modal-selection').innerText = item.selection || '挑選新鮮度高、無異味者佳。';
+            document.getElementById('modal-storage').innerText = item.storage || '請保存於適當冷藏或冷凍環境。';
+
+            const recipesContainer = document.getElementById('modal-recipes');
+            const matchedRecipes = recipesData.filter(r => (item.recipeIds || []).includes(r.id) || r.ingredients.includes(item.id));
+
+            if (matchedRecipes.length === 0) {
+                recipesContainer.innerHTML = `<span class="text-xs text-gray-400">目前暫無直接關聯的食譜</span>`;
+            } else {
+                recipesContainer.innerHTML = matchedRecipes.map(r => `
+                    <button onclick="goToRecipeFromModal('${r.id}', '${item.id}')" class="bg-nature-50 hover:bg-nature-100 text-nature-700 hover:text-nature-900 text-xs px-3 py-1.5 rounded-xl border border-nature-200 transition-all font-medium flex items-center shadow-xs">
+                        <i class="fa-solid fa-utensils mr-1.5 text-nature-500"></i> ${r.title} <i class="fa-solid fa-arrow-right text-[10px] ml-1.5 opacity-60"></i>
+                    </button>
+                `).join('');
+            }
+
+            updateModalFavBtn();
+            updateModalCheckboxBtn();
+
+            document.getElementById('ingredient-modal').classList.remove('hidden');
+        }
+
+        function goToRecipeFromModal(recipeId, ingredientId) {
+            closeModal();
+            if (!selectedIngredients.includes(ingredientId)) {
+                selectedIngredients.push(ingredientId);
+            }
+            updateBadges();
+            switchTab('matchmaker');
+            runRecipeMatch(true);
+        }
+
+        function closeModal() {
+            document.getElementById('ingredient-modal').classList.add('hidden');
+            currentModalIngredient = null;
+        }
+
+        function toggleSelectIngredient(id) {
+            const index = selectedIngredients.indexOf(id);
+            if (index > -1) {
+                selectedIngredients.splice(index, 1);
+            } else {
+                selectedIngredients.push(id);
+            }
+            updateBadges();
+            renderExplore();
+            if (currentModalIngredient && currentModalIngredient.id === id) {
+                updateModalCheckboxBtn();
+            }
+        }
+
+        function toggleSelectIngredientFromModal() {
+            if (currentModalIngredient && currentModalIngredient.status !== 'off_season') {
+                toggleSelectIngredient(currentModalIngredient.id);
+            }
+        }
+
+        function updateModalCheckboxBtn() {
+            const btn = document.getElementById('modal-select-checkbox-btn');
+            if (!currentModalIngredient) return;
+
+            if (currentModalIngredient.status === 'off_season') {
+                btn.className = "w-full py-2.5 rounded-xl text-sm font-semibold bg-gray-200 text-gray-400 cursor-not-allowed";
+                btn.innerHTML = `<i class="fa-solid fa-ban mr-1.5"></i> 目前非產季無法選取`;
+                btn.disabled = true;
+                return;
+            }
+
+            btn.disabled = false;
+            const isSelected = selectedIngredients.includes(currentModalIngredient.id);
+            if (isSelected) {
+                btn.className = "w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-colors";
+                btn.innerHTML = `<i class="fa-solid fa-check mr-1.5"></i> 已加入籃中 (點擊移除)`;
+            } else {
+                btn.className = "w-full py-2.5 rounded-xl text-sm font-semibold bg-nature-500 hover:bg-nature-600 text-white shadow-sm transition-colors";
+                btn.innerHTML = `<i class="fa-solid fa-plus mr-1.5"></i> 加入配對食材籃`;
+            }
+        }
+
+        function toggleFavoriteIngredient(id) {
+            const index = favoriteIngredients.indexOf(id);
+            if (index > -1) {
+                favoriteIngredients.splice(index, 1);
+            } else {
+                favoriteIngredients.push(id);
+            }
+            localStorage.setItem('fav_ingredients', JSON.stringify(favoriteIngredients));
+            updateBadges();
+            renderExplore();
+            if (currentModalIngredient && currentModalIngredient.id === id) {
+                updateModalFavBtn();
+            }
+            if (!document.getElementById('tab-favorites').classList.contains('hidden')) {
+                renderFavorites();
+            }
+        }
+
+        function toggleFavoriteIngredientFromModal() {
+            if (currentModalIngredient) {
+                toggleFavoriteIngredient(currentModalIngredient.id);
+            }
+        }
+
+        function updateModalFavBtn() {
+            const btn = document.getElementById('modal-fav-btn');
+            const isFav = favoriteIngredients.includes(currentModalIngredient.id);
+            btn.className = isFav 
+                ? "w-10 h-10 rounded-full border border-amber-200 bg-amber-50 flex items-center justify-center text-amber-500 transition-colors"
+                : "w-10 h-10 rounded-full border border-cream-200 flex items-center justify-center text-gray-400 hover:text-amber-500 transition-colors";
+        }
+
+        function toggleFavoriteRecipe(recipeId) {
+            const index = favoriteRecipes.indexOf(recipeId);
+            if (index > -1) {
+                favoriteRecipes.splice(index, 1);
+            } else {
+                favoriteRecipes.push(recipeId);
+            }
+            localStorage.setItem('fav_recipes', JSON.stringify(favoriteRecipes));
+            updateBadges();
+            runRecipeMatch(true); 
+            if (!document.getElementById('tab-favorites').classList.contains('hidden')) {
+                renderFavorites();
+            }
+        }
+
+        function updateBadges() {
+            const selCount = selectedIngredients.length;
+            const favCount = favoriteIngredients.length + favoriteRecipes.length;
+
+            const badgeSel = document.getElementById('badge-selected-count');
+            badgeSel.innerText = selCount;
+            badgeSel.classList.toggle('hidden', selCount === 0);
+
+            const badgeFav = document.getElementById('badge-fav-count');
+            badgeFav.innerText = favCount;
+            badgeFav.classList.toggle('hidden', favCount === 0);
+        }
+
+        function renderMatchmakerSelected() {
+            const container = document.getElementById('selected-ingredients-tags');
+            if (selectedIngredients.length === 0) {
+                container.innerHTML = `<span class="text-sm text-gray-400 italic">尚未選取食材，請至「縣市當季探索」勾選食材。</span>`;
+                return;
+            }
+
+            container.innerHTML = selectedIngredients.map(id => {
+                const item = ingredientsData.find(i => i.id === id) || proteinIngredientsData.find(i => i.id === id);
+                if (!item) return '';
+                return `
+                    <span class="inline-flex items-center bg-nature-100 text-nature-800 text-xs font-semibold px-3 py-1.5 rounded-xl border border-nature-200 shadow-xs">
+                        <img src="${item.image}" class="w-4 h-4 rounded-full object-cover mr-1.5"> ${item.name}
+                        <button onclick="toggleSelectIngredient('${id}'); renderMatchmakerSelected();" class="ml-2 text-nature-600 hover:text-red-600">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </span>
+                `;
+            }).join('');
+        }
+
+        function clearSelectedIngredients() {
+            selectedIngredients = [];
+            updateBadges();
+            renderMatchmakerSelected();
+            renderExplore();
+            document.getElementById('recipe-results-container').innerHTML = `
+                <div class="col-span-full bg-white p-10 rounded-2xl text-center border border-cream-200 text-gray-400">
+                    <i class="fa-solid fa-plate-wheat text-4xl mb-3 text-cream-200"></i>
+                    <p>請先勾選食材並點擊「開始配對料理」！</p>
+                </div>
+            `;
+        }
+
+        function checkWeirdCombo() {
+            for (let combo of weirdCombinations) {
+                const isWeird = combo.ingredients.every(ing => selectedIngredients.includes(ing));
+                if (isWeird) return combo;
+            }
+            return null;
+        }
+
+        function runRecipeMatch(skipWarningCheck = false) {
+            renderMatchmakerSelected();
+            const container = document.getElementById('recipe-results-container');
+
+            if (selectedIngredients.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white p-8 rounded-2xl text-center border border-cream-200 text-amber-600">
+                        <i class="fa-solid fa-circle-exclamation text-3xl mb-2"></i>
+                        <p class="font-bold">請至少選擇一項食材才能配對食譜！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (!skipWarningCheck && !bypassWeirdWarning) {
+                const weirdMatch = checkWeirdCombo();
+                if (weirdMatch) {
+                    document.getElementById('weird-combo-desc').innerHTML = `
+                        <strong>偵測到特殊組合：</strong><br>
+                        ${weirdMatch.reason}
+                    `;
+                    document.getElementById('weird-combo-modal').classList.remove('hidden');
+                    return;
+                }
+            }
+
+            const matchedRecipes = recipesData.filter(recipe => 
+                selectedIngredients.every(ing => recipe.ingredients.includes(ing))
+            );
+
+            if (matchedRecipes.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white p-10 rounded-2xl text-center border border-cream-200 text-gray-500">
+                        <i class="fa-solid fa-utensils text-3xl mb-2 text-cream-300"></i>
+                        <p class="font-bold text-base mb-1">找不到同時包含您所選「全部食材」的食譜組合</p>
+                        <p class="text-xs text-gray-400">您可以試著取消勾選一兩項食材，或選擇更適合互相搭配的菜色組合！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = matchedRecipes.map(recipe => {
+                const isFav = favoriteRecipes.includes(recipe.id);
+                return `
+                    <div class="bg-white rounded-2xl overflow-hidden border border-cream-200 shadow-sm flex flex-col justify-between relative">
+                        <button onclick="toggleFavoriteRecipe('${recipe.id}')" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 backdrop-blur-md hover:bg-white flex items-center justify-center text-sm ${isFav ? 'text-amber-500' : 'text-gray-400'} transition-colors z-10 shadow-sm">
+                            <i class="fa-solid fa-bookmark"></i>
+                        </button>
+
+                        <div>
+                            <div class="h-44 w-full overflow-hidden relative">
+                                <img src="${recipe.image}" alt="${recipe.title}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="p-6">
+                                <h4 class="font-bold text-nature-800 text-xl mb-1">${recipe.title}</h4>
+                                <div class="flex items-center space-x-3 text-xs text-nature-600 mb-3">
+                                    <span><i class="fa-regular fa-clock mr-1"></i>${recipe.time}</span>
+                                    <span><i class="fa-solid fa-fire-burner mr-1"></i>難度：${recipe.difficulty}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4 bg-cream-50 p-3.5 rounded-xl border border-cream-200">${recipe.description}</p>
+                                
+                                <div class="mb-2">
+                                    <h5 class="text-xs font-bold text-nature-700 uppercase tracking-wider mb-2"><i class="fa-solid fa-list-check mr-1"></i> 步驟說明</h5>
+                                    <ol class="space-y-2 text-sm text-gray-700">
+                                        ${recipe.steps.map((step, idx) => `<li class="flex items-start"><span class="bg-nature-100 text-nature-800 font-bold text-xs w-5 h-5 rounded-full flex items-center justify-center mr-2 mt-0.5 shrink-0">${idx+1}</span><span>${step}</span></li>`).join('')}
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-cream-50/50 border-t border-cream-200 flex items-center justify-between">
+                            <span class="text-xs text-nature-500"><i class="fa-solid fa-circle-check text-nature-500 mr-1"></i> 完全包含您勾選的全部食材</span>
+                            <button onclick="toggleFavoriteRecipe('${recipe.id}')" class="text-xs font-semibold px-3 py-1.5 rounded-lg border ${isFav ? 'bg-amber-50 border-amber-200 text-amber-700' : 'border-cream-200 text-nature-700 hover:bg-cream-100'} transition-colors">
+                                <i class="fa-solid fa-bookmark mr-1"></i> ${isFav ? '已收藏食譜' : '收藏食譜'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            bypassWeirdWarning = false; 
+        }
+
+        function closeWeirdModal(proceed = false) {
+            document.getElementById('weird-combo-modal').classList.add('hidden');
+            if (proceed) {
+                bypassWeirdWarning = true;
+                runRecipeMatch(true);
+            }
+        }
+
+        function renderFavorites() {
+            const favIngGrid = document.getElementById('fav-ingredients-grid');
+            const allItems = [...ingredientsData, ...proteinIngredientsData];
+            const favIngItems = allItems.filter(i => favoriteIngredients.includes(i.id));
+
+            if (favIngItems.length === 0) {
+                favIngGrid.innerHTML = `<div class="col-span-full py-8 text-center text-gray-400 bg-white rounded-2xl border border-cream-200"><p class="text-sm">尚未收藏食材。</p></div>`;
+            } else {
+                favIngGrid.innerHTML = favIngItems.map(item => `
+                    <div class="bg-white rounded-2xl p-3 border border-cream-200 shadow-sm flex items-center justify-between">
+                        <div class="flex items-center space-x-3 cursor-pointer" onclick="openModal('${item.id}')">
+                            <img src="${item.image}" class="w-12 h-12 rounded-xl object-cover">
+                            <div>
+                                <h4 class="font-bold text-nature-800">${item.name}</h4>
+                            </div>
+                        </div>
+                        <button onclick="toggleFavoriteIngredient('${item.id}')" class="text-amber-500 hover:text-gray-300 p-2">
+                            <i class="fa-solid fa-bookmark text-lg"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            const favRecipeGrid = document.getElementById('fav-recipes-grid');
+            const favRecipeItems = recipesData.filter(r => favoriteRecipes.includes(r.id));
+            if (favRecipeItems.length === 0) {
+                favRecipeGrid.innerHTML = `<div class="col-span-full py-8 text-center text-gray-400 bg-white rounded-2xl border border-cream-200"><p class="text-sm">尚未收藏食譜。</p></div>`;
+            } else {
+                favRecipeGrid.innerHTML = favRecipeItems.map(recipe => `
+                    <div class="bg-white rounded-2xl overflow-hidden border border-cream-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="h-36 w-full overflow-hidden">
+                                <img src="${recipe.image}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="p-5">
+                                <h4 class="font-bold text-nature-800 text-xl mb-1">${recipe.title}</h4>
+                                <span class="text-xs text-nature-600"><i class="fa-regular fa-clock mr-1"></i>${recipe.time}</span>
+                                <p class="text-sm text-gray-600 mt-2 bg-cream-50 p-3 rounded-xl border border-cream-200">${recipe.description}</p>
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-cream-200 flex items-center justify-between bg-cream-50/50">
+                            <span class="text-xs text-nature-500"><i class="fa-solid fa-bookmark text-amber-500 mr-1"></i> 已收藏食譜</span>
+                            <button onclick="toggleFavoriteRecipe('${recipe.id}')" class="text-xs font-semibold text-red-600 hover:text-red-800">
+                                取消收藏
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    </script>
+</body>
+</html>
